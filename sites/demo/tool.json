@@ -1,1 +1,1 @@
-{}
+{"toolJson":"{\n  \"title\": \"Demo Calculator\",\n  \"subtitle\": \"Change inputs to see result\",\n  \"inputs\": [\n    { \"name\": \"a\", \"label\": \"A\", \"type\": \"number\", \"default\": 2 },\n    { \"name\": \"b\", \"label\": \"B\", \"type\": \"number\", \"default\": 3 }\n  ],\n  \"formula\": \"a * b\",\n  \"output\": { \"label\": \"A × B\", \"format\": \"int\" }\n}"}
