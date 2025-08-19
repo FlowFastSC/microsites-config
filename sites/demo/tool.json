@@ -1,1 +1,10 @@
-{}
+{
+  "title": "Demo Calculator",
+  "subtitle": "Change inputs to see result",
+  "inputs": [
+    { "name": "a", "label": "A", "type": "number", "default": 2 },
+    { "name": "b", "label": "B", "type": "number", "default": 3 }
+  ],
+  "formula": "a * b",
+  "output": { "label": "A × B", "format": "int" }
+}
