@@ -1,10 +1,126 @@
-{
-  "title": "Demo Calculator",
-  "subtitle": "Change inputs to see result",
-  "inputs": [
-    { "name": "a", "label": "A", "type": "number", "default": 2 },
-    { "name": "b", "label": "B", "type": "number", "default": 3 }
-  ],
-  "formula": "a * b",
-  "output": { "label": "A × B", "format": "int" }
+// macrameCore.ts
+export type Complexity = "simple" | "standard" | "dense";
+export type Construction = "single" | "three_ply" | "braided";
+export type Tension = "loose" | "medium" | "tight";
+
+export type MacrameInputs = {
+  L: number;
+  complexity?: Complexity;
+  d_mm: number;
+  construction: Construction;
+  tension: Tension;
+  legs_total: number;
+  legs_working: number;
+  fringe?: number;
+  wraps?: number;
+  wrap_extra_each?: number;
+  margin_pct?: number;
+  knotted_length?: number;
+  swatch_len?: number;
+  swatch_cord_used_per_working_leg?: number;
+  filler_factor?: number;
+};
+
+export type CutList = {
+  cut_working_each_m: number;
+  cut_filler_each_m: number;
+  count_working: number;
+  count_filler: number;
+  wraps_extra_m: number;
+  total_m_with_margin: number;
+};
+
+// ---- Helpers ----
+function r2(x: number) { return Math.round((x+1e-9)*100)/100; }
+function r1(x: number) { return Math.round((x+1e-9)*10)/10; }
+
+// ---- Standard calculation ----
+function calcStandard(p: Required<Pick<MacrameInputs,"L"|"complexity"|"d_mm"|"construction"|"tension"|"legs_total"|"legs_working">>
+   & Pick<MacrameInputs,"fringe"|"wraps"|"wrap_extra_each"|"margin_pct">): CutList {
+
+  const fringe = p.fringe ?? 0;
+  const wraps = p.wraps ?? 0;
+  const wrap_extra_each = p.wrap_extra_each ?? 1.0;
+  const margin_pct = p.margin_pct ?? 0.15;
+
+  const M: Record<Complexity, number> = { simple:3.5, standard:4.0, dense:5.0 };
+  const Fd = Math.pow(p.d_mm/4.0,0.40);
+  const Fc = {single:1.0, three_ply:1.05, braided:1.10}[p.construction];
+  const Ft = {loose:0.97, medium:1.0, tight:1.08}[p.tension];
+  const F_total = Fd*Fc*Ft;
+
+  const role = {simple:{working:1.0,filler:0.7}, standard:{working:1.0,filler:0.8}, dense:{working:1.0,filler:0.9}};
+  const legs_filler = p.legs_total - p.legs_working;
+
+  const base = M[p.complexity]*p.L*F_total;
+  const min_cut = (2*p.L)+fringe+0.1;
+
+  const cut_working = base+fringe;
+  const cut_filler = Math.max(base*role[p.complexity].filler+fringe,min_cut);
+
+  const total_main = (p.legs_working*cut_working)+(legs_filler*cut_filler);
+  const wraps_extra = wraps*wrap_extra_each;
+  const grand_total = (total_main+wraps_extra)*(1+margin_pct);
+
+  return {
+    cut_working_each_m:r2(cut_working),
+    cut_filler_each_m:r2(cut_filler),
+    count_working:p.legs_working,
+    count_filler:legs_filler,
+    wraps_extra_m:r2(wraps_extra),
+    total_m_with_margin:r1(grand_total),
+  };
+}
+
+// ---- Swatch calculation ----
+function calcSwatch(p: Required<Pick<MacrameInputs,"L"|"d_mm"|"construction"|"tension"|"legs_total"|"legs_working"|"knotted_length"|"swatch_len"|"swatch_cord_used_per_working_leg">>
+   & Pick<MacrameInputs,"fringe"|"wraps"|"wrap_extra_each"|"margin_pct"|"filler_factor">): CutList {
+
+  const fringe = p.fringe ?? 0;
+  const wraps = p.wraps ?? 0;
+  const wrap_extra_each = p.wrap_extra_each ?? 1.0;
+  const margin_pct = p.margin_pct ?? 0.15;
+  const filler_factor = p.filler_factor ?? 0.8;
+
+  const Fd = Math.pow(p.d_mm/4.0,0.40);
+  const Fc = {single:1.0, three_ply:1.05, braided:1.10}[p.construction];
+  const Ft = {loose:0.97, medium:1.0, tight:1.08}[p.tension];
+  const F_total = Fd*Fc*Ft;
+
+  const R = (p.swatch_cord_used_per_working_leg/p.swatch_len)*F_total;
+  const legs_filler = p.legs_total - p.legs_working;
+
+  const base_working = (R*p.knotted_length)+(p.L-p.knotted_length);
+  const base_filler = (R*p.knotted_length*filler_factor)+(p.L-p.knotted_length);
+
+  const min_cut = (2*p.L)+fringe+0.1;
+
+  const cut_working = base_working+fringe;
+  const cut_filler = Math.max(base_filler+fringe,min_cut);
+
+  const total_main = (p.legs_working*cut_working)+(legs_filler*cut_filler);
+  const wraps_extra = wraps*wrap_extra_each;
+  const grand_total = (total_main+wraps_extra)*(1+margin_pct);
+
+  return {
+    cut_working_each_m:r2(cut_working),
+    cut_filler_each_m:r2(cut_filler),
+    count_working:p.legs_working,
+    count_filler:legs_filler,
+    wraps_extra_m:r2(wraps_extra),
+    total_m_with_margin:r1(grand_total),
+  };
+}
+
+// ---- Dispatcher ----
+export function calculate(payload: MacrameInputs) {
+  const required = ["L","d_mm","construction","tension","legs_total","legs_working"] as const;
+  for(const k of required){ if(payload[k]===undefined) throw new Error(`Missing ${k}`); }
+
+  const hasSwatch = payload.knotted_length!==undefined && payload.swatch_len!==undefined && payload.swatch_cord_used_per_working_leg!==undefined;
+  if(hasSwatch){
+    return {mode_used:"swatch", result:calcSwatch(payload as any)};
+  }
+  if(!payload.complexity) throw new Error(\"Missing complexity for standard mode\");
+  return {mode_used:\"standard\", result:calcStandard(payload as any)};
 }
