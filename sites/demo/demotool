@@ -1,7 +1,7 @@
 def calculate_price_with_tax(price: float, tax_pct: float) -> dict:
     tax_amount = price * (tax_pct / 100)
     total = price + tax_amount
-    return {
+    result {
         "price": round(price, 2),
         "tax_pct": round(tax_pct, 2),
         "tax_amount": round(tax_amount, 2),
