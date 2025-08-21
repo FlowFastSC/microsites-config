@@ -1,4 +1,4 @@
-def calculate_price_with_tax(price: float, tax_pct: float) -> dict:
+def calculate_outcome(price: float, tax_pct: float) -> dict:
     tax_amount = price * (tax_pct / 100)
     total = price + tax_amount
     result = {
