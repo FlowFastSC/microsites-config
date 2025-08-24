@@ -1,6 +1,6 @@
 import math
 
-def calculate_outcome(data):
+def calculate_outcome(data) -> dict:
     """
     Calculate macrame rope requirements based on sample and target specifications.
 
@@ -75,4 +75,11 @@ if __name__ == "__main__":
         "target": {"total_length": 30, "attached_length": 2, "fringe_length": 5, "min_width": 22, "num_ropes": None, "rope_multiplier": 4},
         "settings": {"safety_margin": 15, "uom": "cm"},
     }
-    print(calculate_outcome(test_data))
+    
+def run(params: dict) -> dict:
+    """
+    Standard interface for the backend.
+    - Receives params from Framer as a dict.
+    - Returns a JSON-serializable dict.
+    """
+    return calculate_outcome(params)
