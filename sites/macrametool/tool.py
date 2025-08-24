@@ -1,26 +1,15 @@
 import math
+from typing import Any, Dict, Tuple
 
+# ---------- core compute ----------
 def calculate_outcome(data) -> dict:
-    """
-    Calculate macrame rope requirements based on sample and target specifications.
-
-    Args:
-        data (dict): {"sample": {...}, "target": {...}, "settings": {...}}
-
-    Returns:
-        dict: Calculation results
-    """
     sample = data["sample"]
     target = data["target"]
     settings = data["settings"]
 
-    # 1) Rope consumption ratio (rope length used per knotting length)
     rope_consumption_ratio = sample["rope_used"] / sample["k_length"]
-
-    # 2) Sample density (width per rope)
     sample_density = sample["width"] / sample["ropes"]
 
-    # 3) Determine number of ropes
     if target.get("num_ropes"):
         actual_ropes = int(target["num_ropes"])
         actual_width = actual_ropes * sample_density
@@ -30,16 +19,13 @@ def calculate_outcome(data) -> dict:
         actual_ropes = int(required_multiplier_units * target["rope_multiplier"])
         actual_width = actual_ropes * sample_density
 
-    # 4) Rope length per cord
     target_k_length = target["total_length"] - target["attached_length"] - target["fringe_length"]
     base_rope_for_knotting = target_k_length * rope_consumption_ratio
     total_rope_per_cord = target["attached_length"] + base_rope_for_knotting + target["fringe_length"]
 
-    # 5) Safety margin
     safety_multiplier = 1 + (settings["safety_margin"] / 100.0)
     final_rope_length = total_rope_per_cord * safety_multiplier
 
-    # 6) Totals + conversions
     total_rope_needed = final_rope_length * actual_ropes
     attachment_points = actual_ropes * (2 if sample["folded"] else 1)
 
@@ -68,18 +54,127 @@ def calculate_outcome(data) -> dict:
         },
     }
 
-# Optional local test (won't run inside n8n exec):
-if __name__ == "__main__":
-    test_data = {
-        "sample": {"k_length": 10, "rope_used": 60, "width": 10, "ropes": 4, "folded": True},
-        "target": {"total_length": 30, "attached_length": 2, "fringe_length": 5, "min_width": 22, "num_ropes": None, "rope_multiplier": 4},
-        "settings": {"safety_margin": 15, "uom": "cm"},
-    }
-    
+# ---------- helpers for Framer binding ----------
+INPUT_SCHEMA = [
+    # section, key, type, required, hint
+    ("sample", "k_length", "number", True, "Knotting length of the sample"),
+    ("sample", "rope_used", "number", True, "Rope consumed by the sample"),
+    ("sample", "width", "number", True, "Sample width"),
+    ("sample", "ropes", "integer", True, "Number of cords used in sample"),
+    ("sample", "folded", "boolean", True, "Ropes folded over attachment"),
+
+    ("target", "total_length", "number", True, "Final total length"),
+    ("target", "attached_length", "number", True, "Length used to attach/hang"),
+    ("target", "fringe_length", "number", True, "Fringe length"),
+    ("target", "min_width", "number", False, "Min width (ignored if num_ropes provided)"),
+    ("target", "num_ropes", "integer", False, "Explicit rope count (overrides min_width)"),
+    ("target", "rope_multiplier", "integer", True, "Rope count must be a multiple of this"),
+]
+
+OUTPUT_SCHEMA = [
+    ("number_of_ropes", "integer", "Calculated total ropes"),
+    ("length_per_rope", "number", "Per-rope length (in input unit)"),
+    ("total_rope_length", "number", "Total rope length (in input unit)"),
+    ("total_rope_converted", "number", "Total rope in converted unit"),
+    ("actual_width", "number", "Calculated width (in input unit)"),
+    ("attachment_points", "integer", "Attachment points needed"),
+    ("uom", "string", "Input unit"),
+    ("uom_converted", "string", "Converted unit"),
+    ("calculation_breakdown.rope_consumption_ratio", "number", "Rope/knotting ratio from sample"),
+    ("calculation_breakdown.sample_density", "number", "Width per rope in sample"),
+    ("calculation_breakdown.target_k_length", "number", "Knotting length for target"),
+    ("calculation_breakdown.input_method", "string", "Which targeting method used"),
+]
+
+def _denest_params(params: Dict[str, Any]) -> Dict[str, Dict[str, Any]]:
+    """Allow either nested dicts or flat keys like 'sample.k_length'."""
+    if all(isinstance(v, dict) for v in params.values() if v is not None):
+        # already nested
+        return params
+    sample = {}
+    target = {}
+    settings = {}
+    for k, v in params.items():
+        if "." in k:
+            section, key = k.split(".", 1)
+            if section == "sample":
+                sample[key] = v
+            elif section == "target":
+                target[key] = v
+            elif section == "settings":
+                settings[key] = v
+    return {"sample": sample, "target": target, "settings": settings}
+
+def _validate(data: Dict[str, Dict[str, Any]]) -> Tuple[bool, str]:
+    # required sections
+    for sec in ("sample", "target", "settings"):
+        if sec not in data or not isinstance(data[sec], dict):
+            return False, f"Missing or invalid section: {sec}"
+
+    # required fields
+    required = [(s, k) for (s, k, _t, req, _h) in INPUT_SCHEMA if req]
+    for s, k in required:
+        if data[s].get(k) in (None, ""):
+            return False, f"Missing required field: {s}.{k}"
+
+    # unit & types (light)
+    if data["settings"].get("uom") not in ("cm", "in"):
+        return False, "settings.uom must be 'cm' or 'in'"
+
+    # numeric sanity (examples)
+    try:
+        if float(data["sample"]["k_length"]) <= 0:
+            return False, "sample.k_length must be > 0"
+        if int(data["sample"]["ropes"]) <= 0:
+            return False, "sample.ropes must be > 0"
+        if int(data["target"]["rope_multiplier"]) <= 0:
+            return False, "target.rope_multiplier must be > 0"
+    except Exception:
+        return False, "Numeric fields must be valid numbers"
+
+    return True, ""
+
 def run(params: dict) -> dict:
     """
-    Standard interface for the backend.
-    - Receives params from Framer as a dict.
-    - Returns a JSON-serializable dict.
+    Modes:
+      - mode='schema'  -> returns input/output descriptors for Framer wiring
+      - mode='compute' -> (default) compute result from provided params
+    Accepts nested dicts or flat keys like 'sample.k_length'.
     """
-    return calculate_outcome(params)
+    mode = params.get("mode", "compute")
+
+    if mode == "schema":
+        return {
+            "ok": True,
+            "mode": "schema",
+            "inputs": [
+                {
+                    "id": f"{sec}.{key}",
+                    "section": sec,
+                    "key": key,
+                    "type": typ,
+                    "required": req,
+                    "hint": hint,
+                }
+                for (sec, key, typ, req, hint) in INPUT_SCHEMA
+            ] + [
+                {"id": "settings.safety_margin", "section": "settings", "key": "safety_margin", "type": "number", "required": True, "hint": "Safety margin in %"},
+                {"id": "settings.uom", "section": "settings", "key": "uom", "type": "select", "required": True, "hint": "cm or in", "options": ["cm", "in"]},
+            ],
+            "outputs": [
+                {"id": field, "type": typ, "hint": hint}
+                for (field, typ, hint) in OUTPUT_SCHEMA
+            ],
+        }
+
+    # compute mode
+    data = _denest_params(params)
+    ok, msg = _validate(data)
+    if not ok:
+        return {"ok": False, "error": msg}
+
+    try:
+        result = calculate_outcome(data)
+        return {"ok": True, "result": result}
+    except Exception as e:
+        return {"ok": False, "error": f"Computation failed: {e}"}
