@@ -31,6 +31,12 @@ def calculate_outcome(data) -> dict:
         actual_ropes = int(required_multiplier_units * target["rope_multiplier"])
         actual_width = actual_ropes * sample_density
 
+    # 3a) target fringe length = sample fringe length
+    target["fringe_length"] = sample["fringe_length"]
+    
+    # 3b) target attached length = sample attached length
+    target["attached_length"] = sample["attached_length"]
+    
     # 4) Knotting length for target (vertical)
     #    Subtract attachment and ONE fringe length from total vertical length.
     target_k_length = target["total_length"] - target["attached_length"] - target["fringe_length"]
