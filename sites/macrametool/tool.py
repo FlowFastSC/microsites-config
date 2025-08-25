@@ -14,7 +14,7 @@ def calculate_outcome(data) -> dict:
     #    Remove non-scaling parts (attachment + fringe ends) from measured sample rope.
     #    Note: sample.fringe_length occurs per rope end at the bottom -> multiply by fringe_multiplier.
     rope_consumption_ratio = (
-        (sample["rope_used"] - sample["attached_length"] - fringe_multiplier * sample["fringe_length"])
+        (sample["rope_used"] - sample["attached_length"] - (fringe_multiplier * sample["fringe_length"]))
         / sample["k_length"]
     )
 
@@ -39,7 +39,7 @@ def calculate_outcome(data) -> dict:
     
     # 4) Knotting length for target (vertical)
     #    Subtract attachment and ONE fringe length from total vertical length.
-    target_k_length = target["total_length"] - target["attached_length"] - target["fringe_length"]
+    target_k_length = target["total_length"] - target["fringe_length"]
 
     # 5) Convert knotting length to rope used by knots using the sample ratio
     base_rope_for_knotting = target_k_length * rope_consumption_ratio
