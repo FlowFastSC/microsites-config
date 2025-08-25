@@ -96,7 +96,7 @@ INPUT_SCHEMA = [
     ("target", "total_length", "number", True, "Final total length"), 
     ("target", "min_width", "number", False, "Min width (ignored if num_ropes provided)"),
     ("target", "num_ropes", "integer", False, "Explicit rope count (overrides min_width)"),
-    ("target", "rope_multiplier", "integer", True, "Rope count must be a multiple of this"),
+    ("target", "rope_multiplier", "integer", False, "Rope count must be a multiple of this"),
 ]
 
 OUTPUT_SCHEMA = [
