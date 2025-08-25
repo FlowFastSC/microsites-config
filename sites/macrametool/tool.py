@@ -83,7 +83,7 @@ def calculate_outcome(data) -> dict:
         },
     }
 
-# ---------- helpers for Framer binding ----------
+# ---------- helpers for Framer binding .---------
 INPUT_SCHEMA = [
     # section, key, type, required, hint
     ("sample", "k_length", "number", True, "Knotting length of the sample"),
