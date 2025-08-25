@@ -85,13 +85,9 @@ INPUT_SCHEMA = [
     ("sample", "width", "number", True, "Sample width"),
     ("sample", "ropes", "integer", True, "Number of cords used in sample"),
     ("sample", "folded", "boolean", True, "Ropes folded over attachment"),
-    # NEW in sample:
     ("sample", "attached_length", "number", True, "Attachment length included in sample.rope_used"),
     ("sample", "fringe_length", "number", True, "Fringe length per rope end included in sample.rope_used"),
-
-    ("target", "total_length", "number", True, "Final total length"),
-    ("target", "attached_length", "number", True, "Attachment length per cord"),
-    ("target", "fringe_length", "number", True, "Fringe length per rope end (bottom)"),
+    ("target", "total_length", "number", True, "Final total length"), 
     ("target", "min_width", "number", False, "Min width (ignored if num_ropes provided)"),
     ("target", "num_ropes", "integer", False, "Explicit rope count (overrides min_width)"),
     ("target", "rope_multiplier", "integer", True, "Rope count must be a multiple of this"),
