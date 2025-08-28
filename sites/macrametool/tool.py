@@ -21,7 +21,7 @@ def calculate_outcome(data) -> dict:
     sample_density = sample["width"] / sample["ropes"]
 
     # 3) Determine number of ropes and resulting width
-    target.get("num_ropes"):
+    target.get("num_ropes")
     actual_ropes = int(target["num_ropes"])
     actual_width = actual_ropes * sample_density
 
