@@ -73,9 +73,8 @@ def calculate_outcome(data) -> dict:
         "calculation_breakdown": {
             "rope_consumption_ratio": round(rope_consumption_ratio, 2),
             "sample_density": round(sample_density, 2),
-            "target_k_length": round(target_k_length, 1),
-            "input_method": "direct_ropes" if target.get("num_ropes") else "min_width",
-        },
+            "target_k_length": round(target_k_length, 1)
+            },
     }
 
 # ---------- helpers for Framer binding .---------
@@ -88,9 +87,7 @@ INPUT_SCHEMA = [
     ("sample", "attached_length", "number", True, "Attachment length included in sample.rope_used"),
     ("sample", "fringe_length", "number", True, "Fringe length per rope end included in sample.rope_used"),
     ("target", "total_length", "number", True, "Final total length"), 
-    ("target", "min_width", "number", False, "Min width (ignored if num_ropes provided)"),
-    ("target", "num_ropes", "integer", False, "Explicit rope count (overrides min_width)"),
-    ("target", "rope_multiplier", "integer", False, "Rope count must be a multiple of this"),
+    ("target", "num_ropes", "integer", False, "Explicit rope count")
 ]
 
 OUTPUT_SCHEMA = [
@@ -105,8 +102,7 @@ OUTPUT_SCHEMA = [
     ("calculation_breakdown.rope_consumption_ratio", "number", "Rope/knotting ratio from sample (attachment/fringes removed)"),
     ("calculation_breakdown.sample_density", "number", "Width per rope in sample"),
     ("calculation_breakdown.target_k_length", "number", "Knotting length for target (vertical)"),
-    ("calculation_breakdown.input_method", "string", "Which targeting method used"),
-]
+    ]
 
 def _denest_params(params: Dict[str, Any]) -> Dict[str, Dict[str, Any]]:
     """Allow either nested dicts or flat keys like 'sample.k_length'."""
