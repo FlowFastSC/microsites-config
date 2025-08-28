@@ -22,14 +22,10 @@ def calculate_outcome(data) -> dict:
     sample_density = sample["width"] / sample["ropes"]
 
     # 3) Determine number of ropes and resulting width
-    if target.get("num_ropes"):
-        actual_ropes = int(target["num_ropes"])
-        actual_width = actual_ropes * sample_density
-    else:
-        ropes_for_minimum = target["min_width"] / sample_density
-        required_multiplier_units = math.ceil(ropes_for_minimum / target["rope_multiplier"])
-        actual_ropes = int(required_multiplier_units * target["rope_multiplier"])
-        actual_width = actual_ropes * sample_density
+    target.get("num_ropes"):
+    actual_ropes = int(target["num_ropes"])
+    actual_width = actual_ropes * sample_density
+
 
     # 3a) target fringe length = sample fringe length
     target["fringe_length"] = sample["fringe_length"]
