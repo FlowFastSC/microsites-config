@@ -12,7 +12,6 @@ def calculate_outcome(data) -> dict:
 
     # 1) Rope consumption ratio (knotting-only)
     #    Remove non-scaling parts (attachment + fringe ends) from measured sample rope.
-    .
     rope_consumption_ratio = (
         (sample["rope_used"] - sample["attached_length"])
         / sample["k_length"]
