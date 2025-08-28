@@ -8,13 +8,13 @@ def calculate_outcome(data) -> dict:
     settings = data["settings"]
 
     # 0) Derived: fringe multiplier from folding
-    fringe_multiplier = 2 if sample["folded"] else 1
+    # fringe_multiplier = 2 if sample["folded"] else 1
 
     # 1) Rope consumption ratio (knotting-only)
     #    Remove non-scaling parts (attachment + fringe ends) from measured sample rope.
-    #    Note: sample.fringe_length occurs per rope end at the bottom -> multiply by fringe_multiplier.
+    .
     rope_consumption_ratio = (
-        (sample["rope_used"] - sample["attached_length"] - (fringe_multiplier * sample["fringe_length"]))
+        (sample["rope_used"] - sample["attached_length"])
         / sample["k_length"]
     )
 
@@ -46,7 +46,7 @@ def calculate_outcome(data) -> dict:
 
     # 6) Per-cord rope: attachment (once) + knots + bottom fringe per end
     total_rope_per_cord = (
-        target["attached_length"] + base_rope_for_knotting + fringe_multiplier * target["fringe_length"]
+        target["attached_length"] + base_rope_for_knotting * target["fringe_length"]
     )
 
     # 7) Safety margin
@@ -55,7 +55,7 @@ def calculate_outcome(data) -> dict:
 
     # 8) Totals + conversions
     total_rope_needed = final_rope_length * actual_ropes
-    attachment_points = actual_ropes * (2 if sample["folded"] else 1)
+    attachment_points = actual_ropes * 2 #ropes are folded
 
     uom = settings["uom"]
     if uom == "cm":
@@ -78,7 +78,6 @@ def calculate_outcome(data) -> dict:
             "rope_consumption_ratio": round(rope_consumption_ratio, 2),
             "sample_density": round(sample_density, 2),
             "target_k_length": round(target_k_length, 1),
-            "fringe_multiplier": fringe_multiplier,
             "input_method": "direct_ropes" if target.get("num_ropes") else "min_width",
         },
     }
@@ -90,7 +89,6 @@ INPUT_SCHEMA = [
     ("sample", "rope_used", "number", True, "Total rope used in sample (includes attachment + fringes)"),
     ("sample", "width", "number", True, "Sample width"),
     ("sample", "ropes", "integer", True, "Number of cords used in sample"),
-    ("sample", "folded", "boolean", True, "Ropes folded over attachment"),
     ("sample", "attached_length", "number", True, "Attachment length included in sample.rope_used"),
     ("sample", "fringe_length", "number", True, "Fringe length per rope end included in sample.rope_used"),
     ("target", "total_length", "number", True, "Final total length"), 
@@ -111,7 +109,6 @@ OUTPUT_SCHEMA = [
     ("calculation_breakdown.rope_consumption_ratio", "number", "Rope/knotting ratio from sample (attachment/fringes removed)"),
     ("calculation_breakdown.sample_density", "number", "Width per rope in sample"),
     ("calculation_breakdown.target_k_length", "number", "Knotting length for target (vertical)"),
-    ("calculation_breakdown.fringe_multiplier", "integer", "2 if folded else 1"),
     ("calculation_breakdown.input_method", "string", "Which targeting method used"),
 ]
 
