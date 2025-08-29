@@ -7,41 +7,47 @@ def calculate_outcome(data) -> dict:
     target = data["target"]
     settings = data["settings"]
 
-    # 0) Derived: fringe multiplier from folding
-    # fringe_multiplier = 2 if sample["folded"] else 1
-
+   
     # 1) Rope consumption ratio (knotting-only)
     #    Remove non-scaling parts (attachment + fringe ends) from measured sample rope.
+    # Example: sample "rope_used" = 40, sample "attached_length" = 4  sample "k_length" = 10. rope_consumption_ratio should be: 3.6
     rope_consumption_ratio = (
         (sample["rope_used"] - sample["attached_length"])
         / sample["k_length"]
     )
 
     # 2) Sample density (width per rope)
+     # Example: sample "width" = 3, sample"ropes" = 2. sample_density should be 1.5
     sample_density = sample["width"] / sample["ropes"]
 
     # 3) Determine number of ropes and resulting width
+    # example: num_ropes = 2. actual_ropes should be 2. actual_width should be 3
     target.get("num_ropes")
     actual_ropes = int(target["num_ropes"])
     actual_width = actual_ropes * sample_density
 
 
     # 3a) target fringe length = sample fringe length
+    # Example sample "fringe_length" = 2.target fringe length should be 2.
     target["fringe_length"] = sample["fringe_length"]
     
     # 3b) target attached length = sample attached length
+    # Example sample "attached_length" = 4.target attached length should be 4.
     target["attached_length"] = sample["attached_length"]
     
     # 4) Knotting length for target (vertical)
     #    Subtract attachment and ONE fringe length from total vertical length.
+    # example: target "total_length" = 12, target"fringe_length" = 2. target_k)length should be 10
     target_k_length = target["total_length"] - target["fringe_length"]
 
     # 5) Convert knotting length to rope used by knots using the sample ratio
+    # example:  target_k_length = 10, rope_consumption_ratio = 3.6. base_rope_for_knotting should be 36
     base_rope_for_knotting = target_k_length * rope_consumption_ratio
 
     # 6) Per-cord rope: attachment (once) + knots + bottom fringe per end
+    # example: target attached length = 4. base_rope_for_knotting = 36. target "fringe_length" = 2. Total rope per cord should be 44.
     total_rope_per_cord = (
-        target["attached_length"] + base_rope_for_knotting * target["fringe_length"]
+        (target["attached_length"] + base_rope_for_knotting) + 2 * target["fringe_length"] # multiply fringe by 2 because each rope has 2 ends
     )
 
     # 7) Safety margin
