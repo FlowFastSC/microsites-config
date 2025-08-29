@@ -17,7 +17,7 @@ def calculate_outcome(data) -> dict:
     # sample "k_length" = 10. 
     # rope_consumption_ratio should be: 3.6 
     rope_consumption_ratio = (
-        (sample["rope_used"] - sample["attached_length"] - (2 * sample["fringe_length"])
+        sample["rope_used"] - sample["attached_length"] - (2 * sample["fringe_length"])
         / sample["k_length"]
     )
 
