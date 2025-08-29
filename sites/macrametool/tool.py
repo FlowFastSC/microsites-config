@@ -41,7 +41,7 @@ def calculate_outcome(data) -> dict:
     
     # 4) Knotting length for target (still knotted) (vertical)
     #    
-    target_k_length = target["total_length"]) - target["fringe_length"])
+    target_k_length = target["total_length"] - target["fringe_length"]
 
     
     
