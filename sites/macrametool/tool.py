@@ -77,7 +77,6 @@ def calculate_outcome(data) -> dict:
         "total_rope_length": round(total_rope_needed, 1),
         "total_rope_converted": total_rope_converted,
         "actual_width": round(actual_width, 1),
-        "attachment_points": int(attachment_points),
         "uom": uom,
         "uom_converted": uom_converted,
         "calculation_breakdown": {
