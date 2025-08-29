@@ -143,10 +143,8 @@ def _validate(data: Dict[str, Dict[str, Any]]) -> Tuple[bool, str]:
             return False, "sample.k_length must be > 0"
         if int(data["sample"]["ropes"]) <= 0:
             return False, "sample.ropes must be > 0"
-        if int(data["target"]["rope_multiplier"]) <= 0:
-            return False, "target.rope_multiplier must be > 0"
     except Exception:
-        return False, "Numeric fields must be valid numbers"
+        return False, "Numeric fields must be filled out and contain valid numbers"
 
     return True, ""
 
