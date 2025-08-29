@@ -10,22 +10,26 @@ def calculate_outcome(data) -> dict:
    
     # 1) Rope consumption ratio (knotting-only)
     #    Remove non-scaling parts (attachment + fringe ends) from measured sample rope.
-    # Example: sample "rope_used" = 40, sample "attached_length" = 4  sample "k_length" = 10. rope_consumption_ratio should be: 3.6
+    # Example: 
+    # sample "rope_used" = 44, 
+    # sample "attached_length" = 4
+    # sample "fringe length" = 2
+    # sample "k_length" = 10. 
+    # rope_consumption_ratio should be: 3.6 
     rope_consumption_ratio = (
-        (sample["rope_used"] - sample["attached_length"])
+        (sample["rope_used"] - sample["attached_length"] - (2 * sample["fringe_length"])
         / sample["k_length"]
     )
 
     # 2) Sample density (width per rope)
-     # Example: sample "width" = 3, sample"ropes" = 2. sample_density should be 1.5
+    # Example: sample "width" = 3, sample"ropes" = 2. sample_density should be 1.5
     sample_density = sample["width"] / sample["ropes"]
 
     # 3) Determine number of ropes and resulting width
-    # example: num_ropes = 2. actual_ropes should be 2. actual_width should be 3
+    # 
     target.get("num_ropes")
     actual_ropes = int(target["num_ropes"])
     actual_width = actual_ropes * sample_density
-
 
     # 3a) target fringe length = sample fringe length
     # Example sample "fringe_length" = 2.target fringe length should be 2.
@@ -35,29 +39,30 @@ def calculate_outcome(data) -> dict:
     # Example sample "attached_length" = 4.target attached length should be 4.
     target["attached_length"] = sample["attached_length"]
     
-    # 4) Knotting length for target (vertical)
-    #    Subtract attachment and TWO fringe length from total vertical length.
-    # example: target "total_length" = 44, target"fringe_length" = 2. target_k)length should be 10
-    target_k_length = target["total_length"] - (2 * target["fringe_length"]) - target["attached_length"]
+    # 4) Knotting length for target (still knotted) (vertical)
+    #    
+    target_k_length = target["total_length"]) - target["fringe_length"])
 
+    
+    
     # 5) Convert knotting length to rope used by knots using the sample ratio
-    # example:  target_k_length = 10, rope_consumption_ratio = 3.6. base_rope_for_knotting should be 36
+    # 
     base_rope_for_knotting = target_k_length * rope_consumption_ratio
 
     # 6) Per-cord rope: attachment (once) + knots + bottom fringe per end
-    # example: target attached length = 4. base_rope_for_knotting = 36. target "fringe_length" = 2. Total rope per cord should be 44.
+    # 
     total_rope_per_cord = (
-        (target["attached_length"] + base_rope_for_knotting) + 2 * target["fringe_length"] # multiply fringe by 2 because each rope has 2 ends
+        (base_rope_for_knotting + (2 * target["fringe_length"]) + target["attached_length"]
     )
 
+        
     # 7) Safety margin
     safety_multiplier = 1 + (settings["safety_margin"] / 100.0)
     final_rope_length = total_rope_per_cord * safety_multiplier
 
     # 8) Totals + conversions
     total_rope_needed = final_rope_length * actual_ropes
-    attachment_points = actual_ropes * 2 #ropes are folded
-
+    
     uom = settings["uom"]
     if uom == "cm":
         uom_converted = "m"
@@ -101,7 +106,6 @@ OUTPUT_SCHEMA = [
     ("total_rope_length", "number", "Total rope length (in input unit)"),
     ("total_rope_converted", "number", "Total rope in converted unit"),
     ("actual_width", "number", "Calculated width (in input unit)"),
-    ("attachment_points", "integer", "Attachment points needed"),
     ("uom", "string", "Input unit"),
     ("uom_converted", "string", "Converted unit"),
     ("calculation_breakdown.rope_consumption_ratio", "number", "Rope/knotting ratio from sample (attachment/fringes removed)"),
