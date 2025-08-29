@@ -36,9 +36,9 @@ def calculate_outcome(data) -> dict:
     target["attached_length"] = sample["attached_length"]
     
     # 4) Knotting length for target (vertical)
-    #    Subtract attachment and ONE fringe length from total vertical length.
-    # example: target "total_length" = 12, target"fringe_length" = 2. target_k)length should be 10
-    target_k_length = target["total_length"] - target["fringe_length"]
+    #    Subtract attachment and TWO fringe length from total vertical length.
+    # example: target "total_length" = 44, target"fringe_length" = 2. target_k)length should be 10
+    target_k_length = target["total_length"] - (2 * target["fringe_length"]) - target["attached_length"]
 
     # 5) Convert knotting length to rope used by knots using the sample ratio
     # example:  target_k_length = 10, rope_consumption_ratio = 3.6. base_rope_for_knotting should be 36
