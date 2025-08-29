@@ -52,7 +52,7 @@ def calculate_outcome(data) -> dict:
     # 6) Per-cord rope: attachment (once) + knots + bottom fringe per end
     # 
     total_rope_per_cord = (
-        (base_rope_for_knotting + (2 * target["fringe_length"]) + target["attached_length"]
+        base_rope_for_knotting + (2 * target["fringe_length"]) + target["attached_length"]
     )
 
         
