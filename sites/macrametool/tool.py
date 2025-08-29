@@ -137,7 +137,8 @@ def _validate(data: Dict[str, Dict[str, Any]]) -> Tuple[bool, str]:
     required = [(s, k) for (s, k, _t, req, _h) in INPUT_SCHEMA if req]
     for s, k in required:
         if data[s].get(k) in (None, ""):
-            return False, f"Missing required field: {s}.{k}"
+            return False, f"Missing required field"
+            # this one is more specific but is confusing to the end user since it uses intermediate fields: return False, f"Missing required field: {s}.{k}"
 
     # unit & types (light)
     if data["settings"].get("uom") not in ("cm", "in"):
