@@ -41,7 +41,7 @@ def calculate_outcome(data) -> dict:
     # 6) Per-cord rope: attachment (once) + knots + bottom fringe per end
     # 
     total_rope_per_cord = (
-        base_rope_for_knotting + (2 * target["fringe_length"]) + target["attached_length"]
+        base_rope_for_knotting + (2 * target["fringe_length"]) + target["attached_length"])
 
     # 7) how much rope is used if only the vertical calculation is applied
         
@@ -118,7 +118,6 @@ OUTPUT_SCHEMA = [
     ("uom", "string", "Input unit"),
     ("uom_converted", "string", "Converted unit"),
     ("calculation_breakdown.rope_consumption_ratio", "number", "Rope/knotting ratio from sample (attachment/fringes removed)"),
-    ("calculation_breakdown.sample_density", "number", "Width per rope in sample"),
     ("calculation_breakdown.target_k_length", "number", "Knotting length for target (vertical)"),
     ]
 
