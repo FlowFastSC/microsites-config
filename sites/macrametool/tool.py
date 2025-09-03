@@ -8,6 +8,7 @@ def calculate_outcome(data) -> dict:
     settings = data["settings"]
 
    
+    # First vertical (length)
     # 1) Rope consumption ratio (knotting-only)
     #    Remove non-scaling parts (attachment + fringe ends) from measured sample rope.
     # Example: 
@@ -21,29 +22,17 @@ def calculate_outcome(data) -> dict:
         / sample["k_length"]
     )
 
-    # 2) Sample density (width per rope)
-    # Example: sample "width" = 3, sample"ropes" = 2. sample_density should be 1.5
-    sample_density = sample["width"] / sample["ropes"]
-
-    # 3) Determine number of ropes and resulting width
-    # 
-    target.get("num_ropes")
-    actual_ropes = int(target["num_ropes"])
-    actual_width = actual_ropes * sample_density
-
-    # 3a) target fringe length = sample fringe length
+     # 3a) target fringe length = sample fringe length
     # Example sample "fringe_length" = 2.target fringe length should be 2.
     target["fringe_length"] = sample["fringe_length"]
     
     # 3b) target attached length = sample attached length
     # Example sample "attached_length" = 4.target attached length should be 4.
     target["attached_length"] = sample["attached_length"]
-    
+
     # 4) Knotting length for target (still knotted) (vertical)
     #    
     target_k_length = target["total_length"] - target["fringe_length"]
-
-    
     
     # 5) Convert knotting length to rope used by knots using the sample ratio
     # 
@@ -53,15 +42,36 @@ def calculate_outcome(data) -> dict:
     # 
     total_rope_per_cord = (
         base_rope_for_knotting + (2 * target["fringe_length"]) + target["attached_length"]
-    )
+
+    # 7) how much rope is used if only the vertical calculation is applied
+        
+        total_rope_vertical = (
+        total_rope_per_cord * sample["ropes"])
+
+    # now take int account width
+
+    # 8) Determine project width based on min_width
+    # Example: min_width is 6
+    # sample width is 4
+    # actual width multiplier 6 / 4 = 1.5 and rounds up to 2
+    # meaning actual width will be 8 
+    
+    actual_width_multiplier = math.ceil(target["min_width"] / sample["width"])
+    actual_width = actual_width_multiplier * sample["width"]
+    
+    # 9) multiply based on the amount of times the sample is repeated in the width
+    total_rope_needed = total_rope_vertical * actual_width_multiplier
+
+    # 10) bonus: amount of cords needed
+    number_of_ropes = total_rope_needed / total_rope_per_cord
 
         
-    # 7) Safety margin
+    # 11) Safety margin
     safety_multiplier = 1 + (settings["safety_margin"] / 100.0)
-    final_rope_length = total_rope_per_cord * safety_multiplier
+    final_length_per_cord = total_rope_per_cord * safety_multiplier
+    final_total_rope_length = total_rope_needed * safety_multiplier
 
-    # 8) Totals + conversions
-    total_rope_needed = final_rope_length * actual_ropes
+
     
     uom = settings["uom"]
     if uom == "cm":
@@ -72,9 +82,9 @@ def calculate_outcome(data) -> dict:
         total_rope_converted = round(total_rope_needed / 12.0, 2)
 
     return {
-        "number_of_ropes": int(actual_ropes),
-        "length_per_rope": round(final_rope_length, 1),
-        "total_rope_length": round(total_rope_needed, 1),
+        "number_of_ropes": int(number_of_ropes),
+        "length_per_rope": round(final_length_per_cord, 1),
+        "total_rope_length": round(final_total_rope_length, 1),
         "total_rope_converted": total_rope_converted,
         "actual_width": round(actual_width, 1),
         "uom": uom,
@@ -96,7 +106,7 @@ INPUT_SCHEMA = [
     ("sample", "attached_length", "number", True, "Attachment length included in sample.rope_used"),
     ("sample", "fringe_length", "number", True, "Fringe length per rope end included in sample.rope_used"),
     ("target", "total_length", "number", True, "Final total length"), 
-    ("target", "num_ropes", "integer", False, "Explicit rope count")
+    ("target", "min_width", "integer", True, "minimum width the project should have")
 ]
 
 OUTPUT_SCHEMA = [
