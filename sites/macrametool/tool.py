@@ -45,7 +45,7 @@ def calculate_outcome(data) -> dict:
 
     # 7) how much rope is used if only the vertical calculation is applied
         
-        total_rope_vertical = (
+    total_rope_vertical = (
         total_rope_per_cord * sample["ropes"])
 
     # now take into account the project width
