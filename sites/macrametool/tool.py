@@ -91,7 +91,6 @@ def calculate_outcome(data) -> dict:
         "uom_converted": uom_converted,
         "calculation_breakdown": {
             "rope_consumption_ratio": round(rope_consumption_ratio, 2),
-            "sample_density": round(sample_density, 2),
             "target_k_length": round(target_k_length, 1)
             },
     }
