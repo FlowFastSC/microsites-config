@@ -48,13 +48,13 @@ def calculate_outcome(data) -> dict:
         total_rope_vertical = (
         total_rope_per_cord * sample["ropes"])
 
-    # now take int account width
+    # now take into account the project width
 
-    # 8) Determine project width based on min_width
+    # 8) Determine actual project width based on min_width
     # Example: min_width is 6
     # sample width is 4
     # actual width multiplier 6 / 4 = 1.5 and rounds up to 2
-    # meaning actual width will be 8 
+    # meaning actual width will be 2 * 4 = 8 
     
     actual_width_multiplier = math.ceil(target["min_width"] / sample["width"])
     actual_width = actual_width_multiplier * sample["width"]
@@ -63,7 +63,7 @@ def calculate_outcome(data) -> dict:
     total_rope_needed = total_rope_vertical * actual_width_multiplier
 
     # 10) bonus: amount of cords needed
-    number_of_ropes = total_rope_needed / total_rope_per_cord
+    number_of_cords = total_rope_needed / total_rope_per_cord
 
         
     # 11) Safety margin
@@ -82,7 +82,7 @@ def calculate_outcome(data) -> dict:
         total_rope_converted = round(total_rope_needed / 12.0, 2)
 
     return {
-        "number_of_ropes": int(number_of_ropes),
+        "number_of_ropes": int(number_of_cords),
         "length_per_rope": round(final_length_per_cord, 1),
         "total_rope_length": round(final_total_rope_length, 1),
         "total_rope_converted": total_rope_converted,
